@@ -159,3 +159,9 @@ Open Jenkins URL printed by the last command and log in:
       7. `Stopping Gazebo...`
       8. `Gazebo shut down`
    3. `Finished: SUCCESS`: Last line
+
+# Task 2 Result
+
+Start of console output for first successful build,
+
+![task2_result](task2_result.png)
