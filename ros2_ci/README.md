@@ -68,10 +68,11 @@ colcon test --packages-select fastbot_waypoints --event-handlers console_direct+
 colcon test-result --all
 ```
 
-Same tests in one command, without Gazebo GUI (what Jenkins runs):
+Same tests in one command with Gazebo GUI, for Jenkins:
 
 ```bash
-docker run --rm ros2_ci /run_waypoints_test.sh
+xhost +local:root
+docker run --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix ros2_ci /run_waypoints_test.sh
 ```
 
 ## Jenkins setup (run once)
@@ -150,7 +151,7 @@ Open Jenkins URL printed by the last command and log in:
 4. Open build under **Build History** > **Console Output** (desired output):
    1. `Build Docker image`: image build
    2. `Run waypoints tests`: 
-      1. Gazebo starts
+      1. `Gazebo GUI: true`, Gazebo starts in the rosject **Graphical Tools**
       2. FastBot spawns
       3. Action server starts
       4. Robot drives to goal twice

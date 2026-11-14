@@ -9,9 +9,13 @@ source /ros2_ws/install/setup.bash
 # Each command started with & also gets its own process group, stopped below with kill -INT -- -<PID>
 set -m
 
-# Start FastBot room world without Gazebo GUI in the background
+# Show Gazebo GUI on the display passed to the container
+if [ -n "$DISPLAY" ]; then HEADLESS=0; else HEADLESS=1; fi
+echo "Gazebo GUI: $([ $HEADLESS -eq 0 ] && echo true || echo false) (DISPLAY=$DISPLAY)"
+
+# Start FastBot room world in the background
 # Capture process ID of that launch in SIM_ID
-ros2 launch fastbot_gazebo botbox_world_room.launch.xml headless:=1 &
+ros2 launch fastbot_gazebo botbox_world_room.launch.xml headless:=$HEADLESS &
 SIM_ID=$!
 
 # Spawn FastBot when Gazebo is ready (one_fastbot_room.launch.py waits 20s instead)
@@ -46,16 +50,17 @@ kill -INT -- -$SERVER_ID -$SPAWN_ID 2> /dev/null
 wait $SERVER_ID $SPAWN_ID 2> /dev/null
 
 # Stop simulation and wait for Gazebo to shut down
-# Pause physics and stop gzserver before launch (same as ros1_ci)
+# Pause physics and stop gzserver before launch
 echo "Stopping Gazebo..."
 ros2 service call /pause_physics std_srvs/srv/Empty > /dev/null
+pkill -TERM gzclient    # Gazebo GUI ignores SIGINT, stop it with SIGTERM
 pkill -INT gzserver
-timeout 30s bash -c 'while pgrep gzserver > /dev/null; do sleep 1; done'
+timeout 30s bash -c 'while pgrep gzserver > /dev/null || pgrep gzclient > /dev/null; do sleep 1; done'
 
 # World launch usually ends by itself once gzserver has stopped
 kill -INT -- -$SIM_ID 2> /dev/null
 wait $SIM_ID
-if pgrep gzserver > /dev/null; then
+if pgrep gzserver > /dev/null || pgrep gzclient > /dev/null; then
     echo "Gazebo is still running"
     TEST_RESULT=1
 else
