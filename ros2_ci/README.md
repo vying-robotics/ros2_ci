@@ -165,4 +165,4 @@ Open Jenkins URL printed by the last command and log in:
 
 Start of console output for first successful build,
 
-![task2_result](task2_result.png)
+![task2_result](task2_result.gif)
